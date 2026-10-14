@@ -189,6 +189,26 @@ class LiveUITests(unittest.TestCase):
         self.assertTrue(app.preview.cget("image"))
         self.assertTrue(app.result_view.cget("image"))
 
+    def test_latency_survives_short_tracking_and_camera_gaps_but_expires(self):
+        root, app, _ = self.make_app(UnavailableWorker)
+        self.pump(root, 0.2)
+        app.max_age_ns = 1_000_000_000
+        sample = {"frame_id": 7, "inference_ms": 90,
+                  "frame_turnaround_ms": 200, "gateway_to_gui_ms": 250}
+        app.last_row = sample
+        app.last_measurement_ns = time.perf_counter_ns()
+        with patch.object(app.tracker, "get_latest", return_value=None):
+            self.pump(root, 0.1)
+            self.assertIs(app.last_row, sample)
+            self.assertEqual(app.latency_values["gateway_to_gui_ms"].get(), "250 ms")
+            with patch.object(app.camera, "get_latest", return_value=None):
+                self.pump(root, 0.1)
+                self.assertIs(app.last_row, sample)
+                self.assertEqual(app.latency_values["inference_ms"].get(), "90 ms")
+        self.pump(root, 1.1)
+        self.assertIsNone(app.last_row)
+        self.assertTrue(all(value.get() == "— ms" for value in app.latency_values.values()))
+
 
 if __name__ == "__main__":
     unittest.main()

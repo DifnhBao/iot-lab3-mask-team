@@ -37,6 +37,7 @@ class Application:
         self.display_times = deque(maxlen=120)
         self.detection_times = deque(maxlen=120)
         self.last_row = None
+        self.last_measurement_ns = 0
         self.last_camera_frame = None
         self.connection_status = "Chưa kết nối"
         root.title("Lab3 - Khẩu trang / Cloud")
@@ -85,6 +86,8 @@ class Application:
                       row=3, column=0, columnspan=2, sticky="w", pady=(4, 0))
         ttk.Label(timing_panel, textvariable=self.metrics).grid(
             row=4, column=0, columnspan=2, sticky="w", pady=(4, 0))
+        ttk.Label(timing_panel, text="Số đo của frame đã hiển thị gần nhất; giữ giữa các lần nhận kết quả.").grid(
+            row=5, column=0, columnspan=2, sticky="w", pady=(2, 0))
         self.tick()
 
     def start(self):
@@ -95,6 +98,7 @@ class Application:
         self.display_times.clear()
         self.detection_times.clear()
         self.last_row = None
+        self.last_measurement_ns = 0
         self.last_camera_frame = None
         self.set_latency_values(None)
         self.connection_status = "Đang kết nối server"
@@ -117,6 +121,7 @@ class Application:
         self.preview.configure(image="", text="Đã dừng camera")
         self.result_view.configure(image="", text="Đã dừng / kết quả cũ đã bỏ")
         self.last_row = None
+        self.last_measurement_ns = 0
         self.last_camera_frame = None
         self.set_latency_values(None)
         self.metrics.set(f"CSV: {self.logger.path}")
@@ -221,8 +226,8 @@ class Application:
                     if self.result_view.cget("image"):
                         self.result_view.configure(image="", text="Đang chờ camera")
                     self.preview_key = self.result_key = None
+                    self.last_row = None
                     self.status.set(f"{self.camera.status} | {self.connection_status}")
-                self.last_row = None
             else:
                 self.last_camera_frame = frame
                 key = (frame.session_id, frame.frame_id)
@@ -269,7 +274,6 @@ class Application:
                                     f"Không đeo: {counts['without_mask']} | Đeo sai: {counts['mask_incorrect']} | "
                                     f"Tuổi kết quả: {age_ms:.0f} ms")
                 else:
-                    self.last_row = None
                     self.status.set(f"{self.connection_status} | Video trực tiếp; đang chờ kết quả mới")
 
         # GUI timing ends only when an aligned live frame is submitted to Tk.
@@ -281,6 +285,7 @@ class Application:
             if completion["accepted"] and displayed_prediction == key:
                 row["gateway_to_gui_ms"] = duration_ms(event["received_ns"], perf_counter_ns())
                 self.last_row = row
+                self.last_measurement_ns = event["received_ns"]
             else:
                 row["status"] = "stale"
                 row["error"] = completion["reason"] or "NOT_DISPLAYED"
@@ -288,6 +293,10 @@ class Application:
             self.logger.write(row)
         if self.running:
             now = perf_counter_ns()
+            # A temporary tracking/display miss is not a new latency sample.
+            # Clear only when the last measured source frame really expires.
+            if self.last_row and now - self.last_measurement_ns > self.max_age_ns:
+                self.last_row = None
             fps_text = (f"Hiển thị: {self.measured_fps(self.display_times, now):.1f} FPS | "
                         f"Nhận dạng: {self.measured_fps(self.detection_times, now):.1f} FPS")
             self.set_latency_values(self.last_row)

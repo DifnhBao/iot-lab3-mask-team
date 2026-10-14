@@ -1,0 +1,6 @@
+{
+  "camera": { "type": "webcam", "index": 0 },
+  "cloud_url": "ws://127.0.0.1:8001/ws/predict",
+  "target_fps": 1,
+  "csv_path": "artifacts/webcam_onnx_local.csv"
+}

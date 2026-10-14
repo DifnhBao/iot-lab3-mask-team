@@ -1,0 +1,8 @@
+{
+  "camera": {"type": "esp32_mjpeg", "stream_url": "http://192.168.1.100:81/stream"},
+  "cloud_url": "ws://127.0.0.1:8000/ws/predict",
+  "target_fps": 5,
+  "display_fps": 30,
+  "tracking_max_age_seconds": 1.0,
+  "csv_path": "artifacts/esp32_session.csv"
+}

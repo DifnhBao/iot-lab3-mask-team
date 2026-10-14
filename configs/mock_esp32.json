@@ -1,0 +1,11 @@
+{
+  "camera": {
+    "type": "esp32_mjpeg",
+    "stream_url": "http://IP_ESP32:81/stream"
+  },
+  "cloud_url": "wss://iot-lab3-mask-cloud.onrender.com/ws/predict",
+  "target_fps": 2,
+  "display_fps": 30,
+  "tracking_max_age_seconds": 2.5,
+  "csv_path": "artifacts/esp32_render.csv"
+}

@@ -1,0 +1,11 @@
+.venv*/
+__pycache__/
+*.pyc
+artifacts/
+datasets/
+models/*.pt
+*.cache
+.env
+.env.*
+*.pem
+*.key

@@ -15,7 +15,9 @@ Webcam hoặc ESP32-CAM MJPEG
 
 Đã có code nguồn camera, adapter MJPEG, WebSocket server/client, GUI, CSV logging, script chuẩn bị dữ liệu/train và Docker template.
 
-Dataset gốc tại `datasets/mask`: 848 ảnh không trùng, 4.021 box; 12 box vượt biên 1 pixel đã được cắt về mép ảnh có log. Hiện có trọng số trong `models/`; server mặc định nạp `models/best.pt`, hoặc file chỉ định bởi `MASK_MODEL_PATH`. Config mẫu vẫn dùng server localhost, chưa phải endpoint Cloud thật. Server báo ready=false/HTTP503 khi thiếu model hoặc nạp lỗi. Detector giả chỉ dùng trong tests.
+Dataset đã chuẩn bị tại máy phát triển: 848 ảnh không trùng, 4.021 box; 12 box vượt biên 1 pixel đã được cắt về mép ảnh có log. Dataset không nằm trong repo bàn giao. Hiện có `models/best.pt` và `models/best.onnx`; server local mặc định nạp `models/best.pt`, hoặc file chỉ định bởi `MASK_MODEL_PATH`. Bản ONNX trong `deploy_render/` đã được triển khai lên Render, client dùng `configs/webcam_render.json`. Config `webcam.json` dành cho server localhost. Server báo ready=false/HTTP503 khi thiếu model hoặc nạp lỗi. Detector giả chỉ dùng trong tests.
+
+Webcam → Render đã có kết quả nhận dạng ba trạng thái trong các lượt thử của chủ repo. Webcam laptop hiện gặp vấn đề nên bản này được gửi để đồng đội kiểm tra trên máy khác; chưa xác nhận ESP32-CAM thật. GUI tách ba dòng thời gian (a), (b), (c), có chú thích phạm vi đo. Không coi FPS video/tracking là FPS suy luận Cloud.
 
 Đã kiểm tra 44 test, gồm giao thức/dataset, tracking và GUI Tkinter với camera/nhận diện giả lập. Smoke model thật trên ảnh có sẵn đã chạy; chưa kiểm chứng độ mượt bằng webcam hoặc ESP32-CAM thật trong lần cập nhật này. Chi tiết: [kiểm tra video/tracking](docs/SMOOTH_VIDEO_TEST.md).
 
